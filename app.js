@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
-const indexRouter = require('./routes/base');
+const bookingsRouter = require('./routes/bookingsRouter');
+const userRouter = require('./routes/userRouter');
 const globalErrorHandler = require('./controllers/errorController');
 
 // Creating the app
@@ -22,7 +23,8 @@ app.use(express.json());
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 // Routes
-app.use('/api/v1/', indexRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/bookings', bookingsRouter);
 
 // Error handlers
 app.all('*', (req, _, next) => next(new Error(`${req.originalUrl} not found`)));
