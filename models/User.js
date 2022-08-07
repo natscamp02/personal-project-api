@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const validator = require('validator');
 
 const UserSchema = new mongoose.Schema(
 	{
@@ -13,21 +14,20 @@ const UserSchema = new mongoose.Schema(
 			unique: true,
 
 			validate: {
-				validator(v) {
-					return v === 'an email';
-				},
+				validator: validator.isEmail,
 				message: 'Must be a valid email address',
 			},
 		},
 
 		password: {
 			type: String,
+			select: false,
 			trim: true,
 
-			required: [true, ''],
+			required: [true, 'Please provide a password'],
 			validate: {
-				validator(v) {
-					return v === this.confirm;
+				validator(pass) {
+					return pass === this.confirm;
 				},
 				message: 'Passwords do not match',
 			},
@@ -47,17 +47,10 @@ const UserSchema = new mongoose.Schema(
 
 // Doccument middleware
 UserSchema.pre('save', async function (next) {
-	if (this.isNew || this.isModified('password')) {
-		await bcrypt.hash(this.password, 12);
-		this.confirm = undefined;
-	}
+	if (!this.isNew && !this.isModified('password')) return next();
 
-	next();
-});
-
-UserSchema.pre(/^find/, function (next) {
-	this.select('-password -__v');
-
+	this.password = await bcrypt.hash(this.password, 12);
+	this.confirm = undefined;
 	next();
 });
 

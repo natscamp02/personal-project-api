@@ -24,7 +24,8 @@ exports.getUserByID = catchAsync(async (req, res, next) => {
 });
 
 exports.createUser = catchAsync(async (req, res, next) => {
-	const user = await User.create(restrictFields(req.body, 'name', 'email', 'password', 'confirm'));
+	const data = restrictFields(req.body, 'name', 'email', 'password', 'confirm');
+	const user = await User.create(data);
 
 	res.status(201).json({
 		status: 'success',
