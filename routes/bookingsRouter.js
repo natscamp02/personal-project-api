@@ -4,9 +4,9 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-// router.use(authController.protect);
+router.route('/').get(authController.protect, bookingsController.getAllBookings).post(bookingsController.createBooking);
 
-router.route('/').get(bookingsController.getAllBookings).post(bookingsController.createBooking);
+router.use(authController.protect);
 router
 	.route('/:id')
 	.get(bookingsController.getBookingsById)

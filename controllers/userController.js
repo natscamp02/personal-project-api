@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const restrictFields = require('../utils/restrictFields');
+const { AppError } = require('../utils/appError');
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
 	const users = await User.find();
@@ -15,7 +16,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 exports.getUserByID = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.params.id);
 
-	if (!user) return next(new Error('User not found'));
+	if (!user) return next(new AppError('User not found', 404));
 
 	res.status(200).json({
 		status: 'success',
@@ -37,7 +38,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'name', 'email');
 	const user = await User.findByIdAndUpdate(req.params.id, data, { new: true });
 
-	if (!user) return next(new Error('User not found'));
+	if (!user) return next(new AppError('User not found', 404));
 
 	res.status(200).json({
 		status: 'success',
@@ -46,7 +47,8 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-	await User.findByIdAndDelete(req.params.id);
+	const user = await User.findByIdAndDelete(req.params.id);
+	if (!user) return next(new AppError('User not found', 404));
 
 	res.status(204).json({
 		status: 'success',

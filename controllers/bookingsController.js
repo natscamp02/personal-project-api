@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const catchAsync = require('../utils/catchAsync');
 const restrictFields = require('../utils/restrictFields');
+const { AppError } = require('../utils/appError');
 
 exports.getAllBookings = catchAsync(async (req, res, next) => {
 	const bookings = await Booking.find();
@@ -17,7 +18,7 @@ exports.getBookingsById = catchAsync(async (req, res, next) => {
 	const booking = await Booking.findById(req.params.id);
 
 	// Send an error if no booking is found
-	if (!booking) return next(new Error('No booking found'));
+	if (!booking) return next(new AppError('No booking found', 404));
 
 	// Send the found booking to the user
 	res.status(200).json({
@@ -51,7 +52,7 @@ exports.updateBooking = catchAsync(async (req, res, next) => {
 
 	// Attempt to get the selected booking, and send an error if no booking is found
 	const updatedBooking = await Booking.findByIdAndUpdate(req.params.id, bookingData, { new: true });
-	if (!updatedBooking) return next(new Error('No booking found'));
+	if (!updatedBooking) return next(new AppError('No booking found', 404));
 
 	// Send updated booking in response
 	res.status(200).json({
@@ -64,7 +65,8 @@ exports.updateBooking = catchAsync(async (req, res, next) => {
 
 exports.deleteBooking = catchAsync(async (req, res, next) => {
 	// Attempt to find and delete the coresponding booking
-	await Booking.findByIdAndDelete(req.params.id);
+	const booking = await Booking.findByIdAndDelete(req.params.id);
+	if (!booking) return next(new AppError('No booking found', 404));
 
 	// Send a response to the user
 	res.status(204).json({
