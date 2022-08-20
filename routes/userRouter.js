@@ -9,6 +9,14 @@ router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 
 router.use(authController.protect);
+
+router
+	.route('/profile')
+	.get(authController.getCurrentUser)
+	.patch(authController.updateCurrentUser)
+	.delete(authController.deleteCurrentUser);
+router.patch('/profile/password', authController.updateCurrentUserPassword);
+
 router.route('/').get(userController.getAllUsers).post(userController.createUser);
 router.route('/:id').get(userController.getUserByID).patch(userController.updateUser).delete(userController.deleteUser);
 

@@ -14,8 +14,9 @@ function createAndSendToken(user, status, req, res) {
 	const token = signToken(user._id);
 
 	// Send a cookie with the response
+	const sessionExpiryDate = new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000);
 	res.cookie('jwt', token, {
-		expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+		expires: sessionExpiryDate,
 		httpOnly: true,
 		secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
 	});
@@ -24,7 +25,7 @@ function createAndSendToken(user, status, req, res) {
 	user.password = undefined;
 
 	// Send the response
-	res.status(status).json({ status: 'success', data: { token, user } });
+	res.status(status).json({ status: 'success', data: { token: { value: token, expires: sessionExpiryDate }, user } });
 }
 
 /**
@@ -89,4 +90,49 @@ exports.logout = catchAsync(async (req, res, next) => {
 		httpOnly: true,
 	});
 	res.status(200).json({ status: 'success' });
+});
+
+exports.getCurrentUser = catchAsync(async (req, res, next) => {
+	const user = await User.findById(req.user._id);
+
+	if (!user) return next(new AppError('User not found', 404));
+
+	res.status(200).json({ status: 'success', data: { user } });
+});
+
+exports.updateCurrentUser = catchAsync(async (req, res, next) => {
+	const data = restrictFields(req.body, 'name', 'email');
+	const user = await User.findByIdAndUpdate(req.user._id, data, { new: true });
+
+	if (!user) return next(new AppError('User not found', 404));
+
+	res.status(200).json({ status: 'success', data: { user } });
+});
+
+exports.updateCurrentUserPassword = catchAsync(async (req, res, next) => {
+	const data = restrictFields(req.body, 'currentPassword', 'newPassword', 'confirmPassword');
+	const user = await User.findById(req.user._id).select('+password');
+
+	if (!user) return next(new AppError('User not found', 404));
+
+	// Check if the password is correct
+	if (!(await user.correctPassword(data.currentPassword))) return next(new AppError('Password is incorrect', 400));
+
+	// Set the new password
+	user.set({
+		password: data.newPassword,
+		confirm: data.confirmPassword,
+	});
+	await user.save();
+
+	user.password = undefined;
+	res.status(200).json({ status: 'success', data: { user } });
+});
+
+exports.deleteCurrentUser = catchAsync(async (req, res, next) => {
+	const user = await User.findByIdAndUpdate(req.user._id, { active: false });
+
+	if (!user) return next(new AppError('User not found', 404));
+
+	res.status(204).json({ status: 'success', data: { user: null } });
 });

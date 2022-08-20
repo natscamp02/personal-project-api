@@ -20,6 +20,7 @@ app.use(cors(['http://localhost:4200']));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Body and cookie parsing
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 

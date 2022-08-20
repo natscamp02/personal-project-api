@@ -53,6 +53,7 @@ UserSchema.pre('save', async function (next) {
 
 	this.password = await bcrypt.hash(this.password, 12);
 	this.confirm = undefined;
+	this.passwordChangedAt = new Date();
 	next();
 });
 
