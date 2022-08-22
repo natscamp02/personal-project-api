@@ -72,6 +72,10 @@ const BookingSchema = new mongoose.Schema(
 			maxLength: [255, 'Exceeded maximum character limit'],
 		},
 
+		completed: {
+			type: Boolean,
+			default: false,
+		},
 		payed: {
 			type: Boolean,
 			default: false,

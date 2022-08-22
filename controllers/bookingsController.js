@@ -11,20 +11,31 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
 		if (req.query.filter) {
 			const filterOpts = {};
 
-			const [filterBy, filterValue] = req.query.filter.split('=');
+			let [filterBy, filterValue] = req.query.filter.split('=');
+
+			if (filterValue.match(/^(true|false)$/)) filterValue = filterValue === 'true' ? true : false;
 			filterOpts[filterBy] = filterValue;
 
 			query.find(filterOpts);
 		}
 
-		// Filtering
+		// Searching
 		if (req.query.search) {
+			const nameRegex = new RegExp(req.query.search, 'i');
+
 			query.find({
-				$or: [
-					{ 'artist.name': new RegExp(req.query.search, 'i') },
-					{ 'band.group_name': new RegExp(req.query.search, 'i') },
-				],
+				$or: [{ 'artist.name': nameRegex }, { 'band.group_name': nameRegex }],
 			});
+		}
+
+		// Sorting
+		if (req.query.sort) {
+			const sortOpts = {};
+
+			let [sortBy, sortDirection] = req.query.sort.split('=');
+			sortOpts[sortBy] = sortDirection || 'asc';
+
+			query.sort(sortOpts);
 		}
 
 		// Pagination
@@ -132,6 +143,22 @@ exports.updateBooking = catchAsync(async (req, res, next) => {
 			booking: updatedBooking,
 		},
 	});
+});
+
+exports.approveBooking = catchAsync(async (req, res, next) => {
+	// Get the data to update
+	const bookingData = restrictFields(req.body, 'payed', 'completed');
+
+	// Update the booking data
+	const booking = await Booking.findByIdAndUpdate(
+		req.params.id,
+		{ ...bookingData, approved_by: req.user._id },
+		{ new: true }
+	);
+
+	if (!booking) return next(new AppError('No booking found', 404));
+
+	res.status(200).json({ status: 'success', data: { booking } });
 });
 
 exports.deleteBooking = catchAsync(async (req, res, next) => {
