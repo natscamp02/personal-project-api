@@ -25,6 +25,7 @@ const UserSchema = new mongoose.Schema(
 			trim: true,
 
 			required: [true, 'Please provide a password'],
+			minLength: [8, 'Must be atleast 8 characters long'],
 			validate: {
 				validator(pass) {
 					return pass === this.confirm;
@@ -43,7 +44,10 @@ const UserSchema = new mongoose.Schema(
 	},
 	{
 		collection: 'users',
-		timestamps: true,
+		timestamps: {
+			createdAt: 'created_at',
+			updatedAt: 'last_updated',
+		},
 	}
 );
 

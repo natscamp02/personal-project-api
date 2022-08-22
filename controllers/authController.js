@@ -92,12 +92,24 @@ exports.logout = catchAsync(async (req, res, next) => {
 	res.status(200).json({ status: 'success' });
 });
 
+////////////////////////////////////////////////////////////////
+// ACCOUNT HANDLERS
+////////////////////////////////////////////////////////////////
+
 exports.getCurrentUser = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.user._id);
 
 	if (!user) return next(new AppError('User not found', 404));
 
 	res.status(200).json({ status: 'success', data: { user } });
+});
+
+exports.verifyUser = catchAsync(async (req, res, next) => {
+	const user = await User.findById(req.user._id).select('+password');
+
+	if (!(await user.correctPassword(req.body.password))) return next(new AppError('Password is incorrect', 400));
+
+	res.status(200).json({ status: 'success' });
 });
 
 exports.updateCurrentUser = catchAsync(async (req, res, next) => {

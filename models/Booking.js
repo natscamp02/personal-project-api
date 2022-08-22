@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
 
 const BandSchema = new mongoose.Schema({
-	band_name: {
+	group_name: {
 		type: String,
 		required: [true, ''],
+	},
+	group_size: {
+		type: Number,
+		required: [true, 'Please provide the group size'],
+		min: [1, 'Must have atleast one(1) member'],
 	},
 
 	lead_name: {
@@ -20,27 +25,51 @@ const BandSchema = new mongoose.Schema({
 	},
 });
 
+const ArtistSchema = new mongoose.Schema({
+	name: {
+		type: String,
+		required: [true, ''],
+	},
+	email: {
+		type: String,
+		required: [true, ''],
+	},
+	contact_num: {
+		type: Number,
+		required: [true, ''],
+	},
+});
+
 const BookingSchema = new mongoose.Schema(
 	{
-		band: BandSchema,
-		group_size: {
-			type: Number,
-			required: [true, ''],
-			min: [1, 'Must have atleast one(1) member'],
-			max: [8, 'Cannot have more than eight(8) members'],
+		customer_type: {
+			type: String,
+			required: [true, 'Please provide the type of customer'],
+			enum: {
+				values: ['artist', 'band'],
+				message: 'Customer can either be an artist or a band',
+			},
 		},
+		artist: ArtistSchema,
+		band: BandSchema,
+
 		num_of_instruments: {
 			type: Number,
 			required: true,
 		},
 
-		start_time: {
+		start_date: {
 			type: Date,
 		},
 		duration: {
 			type: Number,
 			required: [true, 'Please specify a duration'],
 			max: [4, 'Cannot be more that 4 hours'],
+		},
+
+		message: {
+			type: String,
+			maxLength: [255, 'Exceeded maximum character limit'],
 		},
 
 		payed: {
@@ -64,8 +93,8 @@ const BookingSchema = new mongoose.Schema(
 );
 
 // Virtuals
-BookingSchema.virtual('end_time').get(function () {
-	return new Date(this.start_time.getTime() + this.duration * 60 * 60 * 1000);
+BookingSchema.virtual('end_date').get(function () {
+	return new Date(this.start_date.getTime() + this.duration * 60 * 60 * 1000);
 });
 BookingSchema.virtual('cost').get(function () {
 	return this.duration * process.env.SESSION_RATE;

@@ -15,6 +15,7 @@ router
 	.get(authController.getCurrentUser)
 	.patch(authController.updateCurrentUser)
 	.delete(authController.deleteCurrentUser);
+router.post('/profile/verify', authController.verifyUser);
 router.patch('/profile/password', authController.updateCurrentUserPassword);
 
 router.route('/').get(userController.getAllUsers).post(userController.createUser);
