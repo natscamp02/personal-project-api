@@ -55,7 +55,7 @@ const BookingSchema = new mongoose.Schema(
 
 		num_of_instruments: {
 			type: Number,
-			required: true,
+			default: 0,
 		},
 
 		start_date: {
