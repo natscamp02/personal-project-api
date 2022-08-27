@@ -3,7 +3,7 @@ const JWT = require('jsonwebtoken');
 const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const restrictFields = require('../utils/restrictFields');
-const { AppError } = require('../utils/appError');
+const { AppError, ValidationError } = require('../utils/appError');
 
 function signToken(id) {
 	return JWT.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -75,8 +75,9 @@ exports.login = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'email', 'password');
 	const user = await User.findOne({ email: data.email }).select('+password');
 
-	if (!user || !(await user?.correctPassword(data.password)))
-		return next(new AppError('Email or password is incorrect', 404));
+	if (!user) return next(new ValidationError(null, { email: 'Email is incorrect' }));
+	if (!(await user?.correctPassword(data.password)))
+		return next(new ValidationError(null, { password: 'Password is incorrect' }));
 
 	createAndSendToken(user, 200, req, res);
 });
@@ -107,7 +108,8 @@ exports.getCurrentUser = catchAsync(async (req, res, next) => {
 exports.verifyUser = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.user._id).select('+password');
 
-	if (!(await user.correctPassword(req.body.password))) return next(new AppError('Password is incorrect', 400));
+	if (!(await user.correctPassword(req.body.password)))
+		return next(new ValidationError(null, { password: 'Password is incorrect' }));
 
 	res.status(200).json({ status: 'success' });
 });
@@ -128,7 +130,8 @@ exports.updateCurrentUserPassword = catchAsync(async (req, res, next) => {
 	if (!user) return next(new AppError('User not found', 404));
 
 	// Check if the password is correct
-	if (!(await user.correctPassword(data.currentPassword))) return next(new AppError('Password is incorrect', 400));
+	if (!(await user.correctPassword(data.currentPassword)))
+		return next(new ValidationError(null, { currentPassword: 'Password is incorrect' }));
 
 	// Set the new password
 	user.set({
