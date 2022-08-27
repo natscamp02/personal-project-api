@@ -10,7 +10,7 @@ class AppError extends Error {
 		super(message);
 
 		this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-		this.type = type || `${statusCode}`.startsWith('4') ? 'RequestError' : 'ServerError';
+		this.type = type || (`${statusCode}`.startsWith('4') ? 'RequestError' : 'ServerError');
 		this.statusCode = statusCode || 500;
 		this.isOperational = true;
 

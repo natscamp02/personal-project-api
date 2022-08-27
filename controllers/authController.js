@@ -124,7 +124,7 @@ exports.updateCurrentUser = catchAsync(async (req, res, next) => {
 });
 
 exports.updateCurrentUserPassword = catchAsync(async (req, res, next) => {
-	const data = restrictFields(req.body, 'currentPassword', 'newPassword', 'confirmPassword');
+	const data = restrictFields(req.body, 'currentPassword', 'password', 'confirm');
 	const user = await User.findById(req.user._id).select('+password');
 
 	if (!user) return next(new AppError('User not found', 404));
@@ -135,13 +135,12 @@ exports.updateCurrentUserPassword = catchAsync(async (req, res, next) => {
 
 	// Set the new password
 	user.set({
-		password: data.newPassword,
-		confirm: data.confirmPassword,
+		password: data.password,
+		confirm: data.confirm,
 	});
 	await user.save();
 
-	user.password = undefined;
-	res.status(200).json({ status: 'success', data: { user } });
+	createAndSendToken(user, 200, req, res);
 });
 
 exports.deleteCurrentUser = catchAsync(async (req, res, next) => {

@@ -13,10 +13,12 @@ function sendDevError(err, req, res) {
 function sendProdError(err, _req, res) {
 	const response = {
 		status: err.isOperational ? err.status : 'error',
-		message: err.isOperational ? err.message : 'Something went wrong. Please try again later',
+		error: {
+			type: err.isOperational ? err.type : 'RequestError',
+			message: err.isOperational ? err.message : 'Something went wrong. Please try again later',
+		},
 	};
-
-	if (err instanceof ValidationError) response.errors = err.errors;
+	if (err instanceof ValidationError) response.error.errors = err.errors;
 
 	res.status(err.isOperational ? err.statusCode : 500).json(response);
 }
