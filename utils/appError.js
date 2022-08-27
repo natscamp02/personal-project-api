@@ -4,11 +4,13 @@ class AppError extends Error {
 	 *
 	 *  @param {string} message - Message to send to the client
 	 *  @param {number} statusCode - HTTP status code to send to the client
+	 *  @param {string?} type - The type of error
 	 */
-	constructor(message, statusCode) {
+	constructor(message, statusCode, type) {
 		super(message);
 
 		this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+		this.type = type || `${statusCode}`.startsWith('4') ? 'RequestError' : 'ServerError';
 		this.statusCode = statusCode || 500;
 		this.isOperational = true;
 
@@ -16,4 +18,17 @@ class AppError extends Error {
 	}
 }
 
-exports.AppError = AppError;
+class ValidationError extends AppError {
+	constructor(err) {
+		super('Some fields are invalid', 400, 'ValidationError');
+
+		this.errors = {};
+		for (const field in err.errors) {
+			if (Object.hasOwnProperty.call(err.errors, field)) {
+				this.errors[field] = err.errors[field].message;
+			}
+		}
+	}
+}
+
+module.exports = { AppError, ValidationError };

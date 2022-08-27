@@ -26,14 +26,16 @@ const UserSchema = new mongoose.Schema(
 
 			required: [true, 'Please provide a password'],
 			minLength: [8, 'Must be atleast 8 characters long'],
+		},
+		confirm: {
+			type: String,
 			validate: {
 				validator(pass) {
-					return pass === this.confirm;
+					return pass === this.password;
 				},
 				message: 'Passwords do not match',
 			},
 		},
-		confirm: String,
 
 		passwordChangedAt: Date,
 
@@ -57,7 +59,14 @@ UserSchema.pre('save', async function (next) {
 
 	this.password = await bcrypt.hash(this.password, 12);
 	this.confirm = undefined;
-	this.passwordChangedAt = new Date();
+	next();
+});
+
+UserSchema.pre('save', function (next) {
+	if (!this.isNew && this.isModified('password')) {
+		this.passwordChangedAt = new Date();
+	}
+
 	next();
 });
 

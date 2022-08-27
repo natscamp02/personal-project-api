@@ -1,13 +1,44 @@
-const { AppError } = require('../utils/appError');
+const { AppError, ValidationError } = require('../utils/appError');
+
+function sendDevError(err, req, res) {
+	console.error(err.message, err.stack);
+
+	res.status(err.statusCode || 500).json({
+		status: err.status || 'error',
+		message: err.message,
+		error: err,
+		stack: err.stack,
+	});
+}
+function sendProdError(err, _req, res) {
+	const response = {
+		status: err.isOperational ? err.status : 'error',
+		message: err.isOperational ? err.message : 'Something went wrong. Please try again later',
+	};
+
+	if (err instanceof ValidationError) response.errors = err.errors;
+
+	res.status(err.isOperational ? err.statusCode : 500).json(response);
+}
 
 function handleDBCastError(err) {
-	return new AppError(`Not a valid id`, 400);
+	let message = `${err.value} is not a valid ${err.path === '_id' ? 'id' : err.path}`;
+
+	return new AppError(message, 400);
 }
 function handleDBValidationError(err) {
-	return new AppError(err.message, 400);
+	return new ValidationError(err);
 }
 function handleDBDuplicateError(err) {
-	return new AppError(`(field) has already been taken`, 400);
+	err.errors = {};
+
+	for (field in err.keyValue) {
+		if (Object.hasOwnProperty.call(err.keyValue, field)) {
+			err.errors[field] = { message: `'${err.keyValue[field]}' is already taken` };
+		}
+	}
+
+	return new ValidationError(err);
 }
 function handleJWTError() {
 	return new AppError(`Token is invalid`, 400);
@@ -21,7 +52,7 @@ function handleJWTExpiredError() {
  * @type {import('express').ErrorRequestHandler}
  */
 module.exports = (err, req, res, next) => {
-	if (process.env.NODE_ENV !== 'production') console.error(err.message, err.stack);
+	if (process.env.NODE_ENV !== 'production') return sendDevError(err, req, res);
 
 	let error = Object.assign(err);
 
@@ -32,15 +63,5 @@ module.exports = (err, req, res, next) => {
 	if (error.name === 'JsonWebTokenError') error = handleJWTError();
 	if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
-	if (error.isOperational) {
-		res.status(error.statusCode).json({
-			status: error.status,
-			message: error.message,
-		});
-	} else {
-		res.status(500).json({
-			status: 'error',
-			message: 'Something went wrong. Please try again later',
-		});
-	}
+	sendProdError(error, req, res);
 };

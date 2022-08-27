@@ -28,6 +28,8 @@ exports.createUser = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'name', 'email', 'password', 'confirm');
 	const user = await User.create(data);
 
+	user.password = undefined;
+
 	res.status(201).json({
 		status: 'success',
 		data: { user },
