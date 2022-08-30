@@ -116,9 +116,12 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
 
 exports.updateCurrentUser = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'name', 'email');
-	const user = await User.findByIdAndUpdate(req.user._id, data, { new: true });
+	const user = await User.findById(req.user._id);
 
 	if (!user) return next(new AppError('User not found', 404));
+
+	user.set(data);
+	await user.save();
 
 	res.status(200).json({ status: 'success', data: { user } });
 });

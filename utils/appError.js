@@ -23,7 +23,7 @@ class ValidationError extends AppError {
 	 * Custom error class for handling validation errors
 	 *
 	 * @param {any} error - Validation error sent by Mongoose
-	 * @param {{[key:string]:string}?} errors - Optional validation error messages
+	 * @param {{[key:string]:string}?} errors - Optional custom validation error messages
 	 */
 	constructor(err, errors = {}) {
 		super('Some fields are invalid', 400, 'ValidationError');
@@ -33,7 +33,15 @@ class ValidationError extends AppError {
 		if (err?.errors)
 			for (const field in err.errors) {
 				if (Object.hasOwnProperty.call(err.errors, field)) {
-					this.errors[field] = err.errors[field].message;
+					let message = err.errors[field].message;
+
+					if (err.errors[field].name === 'CastError')
+						message = `'${err.errors[field].value}' is not a valid ${err.errors[field].path.replaceAll(
+							'_',
+							' '
+						)}`;
+
+					this.errors[field] = message;
 				}
 			}
 	}

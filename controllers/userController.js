@@ -38,9 +38,12 @@ exports.createUser = catchAsync(async (req, res, next) => {
 
 exports.updateUser = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'name', 'email');
-	const user = await User.findByIdAndUpdate(req.params.id, data, { new: true });
+	const user = await User.findById(req.params.id);
 
 	if (!user) return next(new AppError('User not found', 404));
+
+	user.set({ data });
+	await user.save();
 
 	res.status(200).json({
 		status: 'success',
