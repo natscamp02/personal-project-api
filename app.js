@@ -14,7 +14,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 // CORS
-app.use(cors(['http://localhost:4200']));
+app.use(cors(['*']));
 
 // Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
