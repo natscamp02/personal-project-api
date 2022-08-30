@@ -119,9 +119,6 @@ const BookingSchema = new mongoose.Schema(
 );
 
 // Virtuals
-BookingSchema.virtual('end_date').get(function () {
-	return new Date(this.start_date.getTime() + this.duration * 60 * 60 * 1000);
-});
 BookingSchema.virtual('cost').get(function () {
 	return this.duration * process.env.SESSION_RATE;
 });

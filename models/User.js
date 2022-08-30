@@ -9,6 +9,8 @@ const UserSchema = new mongoose.Schema(
 			required: [true, 'Please provide a name'],
 		},
 
+		photo: String,
+
 		email: {
 			type: String,
 			trim: true,
@@ -62,6 +64,15 @@ UserSchema.pre('save', async function (next) {
 
 	this.password = await bcrypt.hash(this.password, 12);
 	this.confirm = undefined;
+	next();
+});
+
+UserSchema.pre('save', function (next) {
+	if (this.isNew || this.isModified('name')) {
+		const name = this.name.replaceAll(' ', '%20');
+		this.photo = `https://avatars.dicebear.com/api/initials/${name}.svg`;
+	}
+
 	next();
 });
 
