@@ -38,7 +38,7 @@ const ArtistSchema = new mongoose.Schema({
 	},
 	email: {
 		type: String,
-		required: [true, 'Please enter the an email address'],
+		required: [true, 'Please enter an email address'],
 		validate: {
 			validator: validator.isEmail,
 			message: 'Please enter a valid email address',
@@ -46,7 +46,7 @@ const ArtistSchema = new mongoose.Schema({
 	},
 	contact_num: {
 		type: Number,
-		required: [true, 'Please enter the a contact number'],
+		required: [true, 'Please enter a contact number'],
 	},
 });
 

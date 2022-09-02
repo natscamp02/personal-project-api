@@ -5,8 +5,25 @@ const { AppError } = require('../utils/appError');
 
 exports.getAllBookings = catchAsync(async (req, res, next) => {
 	let query = Booking.find();
+	let data = {};
 
 	if (req.query) {
+		// Group
+		if (req.query.group) {
+			switch (req.query.group) {
+				case 'incomplete':
+					query.find({ completed: false });
+					break;
+				case 'complete':
+					query.find({ completed: true });
+					break;
+				case 'any':
+				default:
+					query.find();
+					break;
+			}
+		}
+
 		// Filtering
 		if (req.query.filter) {
 			const filterOpts = {};
@@ -40,20 +57,28 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
 
 		// Pagination
 		if (req.query.page) {
-			const page = +req.query.page || 1;
 			const limit = +req.query.limit || 20;
+			const maxNumOfPages = Math.ceil((await Booking.countDocuments()) / limit);
+
+			const page = Math.min(+req.query.page || 1, maxNumOfPages);
 			const skip = (page - 1) * limit;
 
 			query.skip(skip).limit(limit);
+
+			data.page = {
+				limit: limit,
+				current: page,
+				maxNumOfPages: maxNumOfPages,
+			};
 		}
 	}
 
-	const bookings = await query;
+	data.bookings = await query;
+	data.results = data.bookings?.length;
 
 	res.status(200).json({
 		status: 'success',
-		results: bookings.length,
-		data: { bookings },
+		data,
 	});
 });
 
