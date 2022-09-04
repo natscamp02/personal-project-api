@@ -58,7 +58,7 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
 		// Pagination
 		if (req.query.page) {
 			const limit = +req.query.limit || 20;
-			const maxNumOfPages = Math.ceil((await Booking.countDocuments()) / limit);
+			const maxNumOfPages = Math.ceil(Math.max(await Booking.countDocuments(query), 1) / limit);
 
 			const page = Math.min(+req.query.page || 1, maxNumOfPages);
 			const skip = (page - 1) * limit;
