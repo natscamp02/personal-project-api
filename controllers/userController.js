@@ -42,8 +42,10 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 
 	if (!user) return next(new AppError('User not found', 404));
 
-	user.set({ data });
+	user.set(data);
 	await user.save();
+
+	console.log(data, user);
 
 	res.status(200).json({
 		status: 'success',
