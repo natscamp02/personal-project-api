@@ -83,7 +83,7 @@ exports.getAllBookings = catchAsync(async (req, res, next) => {
 });
 
 exports.getBookingsById = catchAsync(async (req, res, next) => {
-	// Attempt to find the coresponding document
+	// Attempt to find the corresponding document
 	const booking = await Booking.findById(req.params.id);
 
 	// Send an error if no booking is found
@@ -187,7 +187,7 @@ exports.approveBooking = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteBooking = catchAsync(async (req, res, next) => {
-	// Attempt to find and delete the coresponding booking
+	// Attempt to find and delete the corresponding booking
 	const booking = await Booking.findByIdAndDelete(req.params.id);
 	if (!booking) return next(new AppError('No booking found', 404));
 

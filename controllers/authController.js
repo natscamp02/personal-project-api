@@ -44,7 +44,9 @@ exports.protect = catchAsync(async (req, res, next) => {
 	if (!token) return next(new AppError('You must be logged in to access this resource', 401));
 
 	// Check if the token is valid
-	const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET);
+	const decoded = await promisify(JWT.verify)(token, process.env.JWT_SECRET, {
+		expiresIn: process.env.JWT_EXPIRES_IN,
+	});
 
 	// Check if the user still exists
 	const user = await User.findById(decoded.id);
@@ -69,7 +71,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 /**
- *  Use to login existsing users
+ *  Use to login existing users
  */
 exports.login = catchAsync(async (req, res, next) => {
 	const data = restrictFields(req.body, 'email', 'password');
