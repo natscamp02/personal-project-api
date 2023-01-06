@@ -30,6 +30,7 @@ if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 // Routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/bookings', bookingsRouter);
+app.all('/', (_, res) => res.sendStatus(200));
 
 // Error handlers
 app.all('*', (req, _, next) => next(new AppError(`${req.originalUrl} not found`)));
