@@ -17,7 +17,7 @@ app.set('trust proxy', 1);
 app.use(cors(['*']));
 
 // Serving static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 // Body and cookie parsing
 app.use(express.urlencoded({ extended: true }));
